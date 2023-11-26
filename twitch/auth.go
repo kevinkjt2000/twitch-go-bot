@@ -26,7 +26,7 @@ func authenticate(conf oauth2.Config) (authCode string, err error) {
 			panic("possible CSRF attack")
 		}
 		authCode = values.Get("code")
-		_, _ = io.WriteString(w, "Authorization token stored successfully. You may now close this page.")
+		_, _ = io.WriteString(w, "Authorization code stored successfully. You may now close this page.")
 		wg.Done()
 	}
 	redirectUrl, err := url.Parse(conf.RedirectURL)

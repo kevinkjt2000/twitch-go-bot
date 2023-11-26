@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -71,7 +72,9 @@ func (w websocketClient) GetBroadcasterId(username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//TODO: raise error when no user is found
+	if len(users.Data) == 0 {
+		return "", errors.New("twitch: no matching users")
+	}
 	return users.Data[0].Id, nil
 }
 
