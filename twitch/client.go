@@ -29,6 +29,27 @@ type websocketClient struct {
 	ircClient  *twitch.Client
 }
 
+func (w websocketClient) doRequest(method string, url string, body io.Reader) ([]byte, int, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, 0, err
+	}
+	req.Header.Set("Client-Id", w.config.ClientId)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	resp, err := w.httpClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	return data, resp.StatusCode, nil
+}
+
 func (w websocketClient) Close() {
 	w.ircClient.Close()
 }
@@ -41,17 +62,7 @@ func (w websocketClient) GetBroadcasterId(username string) (string, error) {
 	params := url.Values{}
 	params.Add("login", username)
 	Url.RawQuery = params.Encode()
-	req, err := http.NewRequest("GET", Url.String(), nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Client-Id", w.config.ClientId)
-	resp, err := w.httpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
+	data, _, err := w.doRequest("GET", Url.String(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -81,17 +92,12 @@ func (w websocketClient) SubscribeToEvent(broadcasterId string, sessionId string
 		Type:    "channel.channel_points_custom_reward_redemption.add",
 		Version: "1",
 	})
-	req, _ := http.NewRequest("POST", "https://api.twitch.tv/helix/eventsub/subscriptions", &buf)
-	req.Header.Set("Client-Id", w.config.ClientId)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := w.httpClient.Do(req)
+	_, status, err := w.doRequest("POST", "https://api.twitch.tv/helix/eventsub/subscriptions", &buf)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("twitch: failed subscription %s", resp.Status)
+	if status != http.StatusAccepted {
+		return fmt.Errorf("twitch: failed subscription %d", status)
 	}
 	return nil
 }
