@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 
 	"github.com/caarlos0/env"
@@ -61,7 +62,8 @@ outer:
 					case "TTS":
 						fmt.Printf("TTS event: %v\n", event)
 						msg := event["user_input"].(string)
-						_ = msg //TODO: speak the user's message with festival
+						cmd := exec.Command("festival", "--batch", fmt.Sprintf(`(SayText "%s")`, msg))
+						_ = cmd.Start() //TODO: refund user if festival fails
 						//TODO: pause music?
 					default: // Can safely ignore rewards that do not require an automated response
 					}
