@@ -29,7 +29,6 @@ func authenticate(conf oauth2.Config) (authCode string, err error) {
 		_, _ = io.WriteString(w, "Authorization token stored successfully. You may now close this page.")
 		wg.Done()
 	}
-	// TODO parse host and path as a url.URL from config struct
 	redirectUrl, err := url.Parse(conf.RedirectURL)
 	if err != nil {
 		return
