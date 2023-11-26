@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 
 	"github.com/caarlos0/env"
 	"github.com/kevinkjt2000/twitch-go-bot/twitch"
@@ -62,8 +64,7 @@ outer:
 					case "TTS":
 						fmt.Printf("TTS event: %v\n", event)
 						msg := event["user_input"].(string)
-						cmd := exec.Command("festival", "--batch", fmt.Sprintf(`(SayText "%s")`, msg))
-						_ = cmd.Start() //TODO: refund user if festival fails
+						_ = speak(msg) //TODO: refund user if festival fails
 						//TODO: pause music?
 					default: // Can safely ignore rewards that do not require an automated response
 					}
@@ -80,6 +81,22 @@ outer:
 			//TODO: reconnect after a timeout of no messages
 		}
 	}
+}
+
+var festivalVoices []string
+
+func init() {
+	cmd := exec.Command("ls", "/usr/share/festival/voices/us")
+	output, err := cmd.CombinedOutput()
+	panicOnErr(err)
+	fmt.Print(string(output))
+	festivalVoices = strings.Split(string(output), "\n")
+}
+
+func speak(msg string) error {
+	randVoice := festivalVoices[rand.Intn(len(festivalVoices))]
+	cmd := exec.Command("festival", "--batch", fmt.Sprintf(`(voice_%s)`, randVoice), fmt.Sprintf(`(SayText "%s")`, msg))
+	return cmd.Start()
 }
 
 func panicOnErr(err error) {
