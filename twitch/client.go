@@ -71,7 +71,7 @@ func (w websocketClient) GetBroadcasterId(username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// TODO raise error when no user is found
+	//TODO: raise error when no user is found
 	return users.Data[0].Id, nil
 }
 

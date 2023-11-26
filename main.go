@@ -61,8 +61,8 @@ outer:
 					case "TTS":
 						fmt.Printf("TTS event: %v\n", event)
 						msg := event["user_input"].(string)
-						_ = msg // TODO speak the user's message with festival
-						// TODO pause music?
+						_ = msg //TODO: speak the user's message with festival
+						//TODO: pause music?
 					default: // Can safely ignore rewards that do not require an automated response
 					}
 					fmt.Printf("%s redeemed '%s'\n", event["user_login"], reward["title"])
@@ -74,8 +74,8 @@ outer:
 				fmt.Printf("%v %s\n", msgType, data)
 			}
 
-			//TODO handle disconnects
-			//TODO reconnect after a timeout of no messages
+			//TODO: handle disconnects
+			//TODO: reconnect after a timeout of no messages
 		}
 	}
 }
