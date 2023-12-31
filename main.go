@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/caarlos0/env"
 	"github.com/kevinkjt2000/twitch-go-bot/twitch"
@@ -36,25 +37,24 @@ func main() {
 	defer conn.CloseNow()
 	defer conn.Close(websocket.StatusNormalClosure, "")
 
-outer:
+	twitchMessages := twitchMessagesChannel(conn, ctx)
+	keepAliveTimeoutSeconds := float64(15)
 	for {
 		select {
 		case <-interrupt:
-			break outer
-		default:
-			msgType, data, err := conn.Read(ctx)
-			panicOnErr(err)
-			var tMsg twitch.Message
-			err = json.Unmarshal(data, &tMsg)
-			if err != nil {
-				continue
-			}
+			fmt.Println("Interrupt detected!")
+			return
+		case <-time.After(time.Duration(keepAliveTimeoutSeconds) * time.Second):
+			fmt.Printf("%v seconds passed without any message\n", keepAliveTimeoutSeconds)
+			return
+		case tMsg := <-twitchMessages:
 			switch tMsg.Metadata.MessageType {
 			case "session_welcome":
 				session := tMsg.Payload["session"].(map[string]interface{})
 				sessionId := session["id"].(string)
 				err = client.SubscribeToEvent(broadcasterId, sessionId)
 				panicOnErr(err)
+				keepAliveTimeoutSeconds = session["keepalive_timeout_seconds"].(float64) + 2 // add a few seconds to be safe
 			case "notification":
 				switch tMsg.Metadata.SubscriptionType {
 				case "channel.channel_points_custom_reward_redemption.add":
@@ -73,14 +73,42 @@ outer:
 					fmt.Printf("unimplemented subscription handle: %s", tMsg.Metadata.SubscriptionType)
 				}
 			case "session_keepalive":
+			case "session_reconnect":
+				// TODO MessageText {"metadata":{"message_id":"0249c605-e94c-47b4-8e7f-74f1b17f83e6","message_type":"session_reconnect","message_timestamp":"2023-12-04T18:20:44.155180678Z"},"payload":{"session":{"id":"AgoQcVTYThJiRFyIqybyp4l47RIGY2VsbC1i","status":"reconnecting","connected_at":"2023-12-03T23:26:36.10105215Z","keepalive_timeout_seconds":null,"reconnect_url":"wss://cell-b.eventsub.wss.twitch.tv/ws?challenge=cde23fff-2894-432d-93af-561bbb6f08c8\u0026id=AgoQcVTYThJiRFyIqybyp4l47RIGY2VsbC1i"}}}
 			default:
-				fmt.Printf("%v %s\n", msgType, data)
+				fmt.Printf("Unhandled twitch message: %s\n", tMsg)
 			}
-
 			//TODO: handle disconnects
-			//TODO: reconnect after a timeout of no messages
 		}
 	}
+}
+
+func twitchMessagesChannel(conn *websocket.Conn, ctx context.Context) chan twitch.Message {
+	twitchMessages := make(chan twitch.Message)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("Closing twitch messages channel")
+				close(twitchMessages)
+				return
+			default:
+				_, data, err := conn.Read(ctx) // the first return value is always "MessageText"
+				if err != nil {
+					continue
+				}
+				var tMsg twitch.Message
+				err = json.Unmarshal(data, &tMsg)
+				if err != nil {
+					continue
+				}
+				twitchMessages <- tMsg
+			}
+		}
+	}()
+
+	return twitchMessages
 }
 
 var festivalVoices []string
@@ -89,12 +117,12 @@ func init() {
 	cmd := exec.Command("ls", "/usr/share/festival/voices/us")
 	output, err := cmd.CombinedOutput()
 	panicOnErr(err)
-	fmt.Print(string(output))
 	festivalVoices = strings.Split(string(output), "\n")
 }
 
 func speak(msg string) error {
 	randVoice := festivalVoices[rand.Intn(len(festivalVoices))]
+	fmt.Println("using random voice ", randVoice)
 	cmd := exec.Command("festival", "--batch", fmt.Sprintf(`(voice_%s)`, randVoice), fmt.Sprintf(`(SayText "%s")`, msg))
 	return cmd.Start()
 }
