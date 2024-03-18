@@ -96,9 +96,6 @@ chat() {
 public_cameras
 chat "/camera back"
 
-# Welcome to the security booth for the Hive Optimization Run! These are various viewpoints throughout the base. Footage is live, so you might catch glimpses of players here and there. If you want more action, follow the streamers in the title to catch their live streams. Eventually, I'll make these cameras more interactive and fix the sound from each one, but for now, please enjoy sitting in the Hive Security Booth™!
-# https://youtu.be/4GiuDQ05Ug4?si=cFCKa0uUusDWsE2T
-
 # You are viewing the Security Booth™ of the private Hive Optimization Run. These are various camera positions showing 2 minutes at a time from the actual server. If you want to see more, be sure to follow the users mentioned in title or checkout the community server https://youtu.be/4GiuDQ05Ug4?si=cFCKa0uUusDWsE2T
 
 # You are viewing the Security Booth™ of the public Hive Optimization Run. These are various camera positions showing 2 minutes at a time from the actual server. If you want to join, checkout the information on Diddy's discord https://discord.gg/diddyshive
