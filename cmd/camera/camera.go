@@ -31,7 +31,7 @@ var hiveCameras = []Camera{
 const (
 	keystrokeDelayMs  = "2"
 	delayAfterCommand = 80 * time.Millisecond
-	delayBetweenSwaps = 3 * time.Second
+	delayBetweenSwaps = 120 * time.Second
 )
 
 type Camera struct {
