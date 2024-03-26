@@ -30,7 +30,7 @@ var hiveCameras = []Camera{
 
 const (
 	keystrokeDelayMs  = "2"
-	delayAfterCommand = 80 * time.Millisecond
+	delayAfterCommand = 100 * time.Millisecond
 	delayBetweenSwaps = 120 * time.Second
 )
 
