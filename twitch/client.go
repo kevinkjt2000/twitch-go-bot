@@ -20,7 +20,7 @@ type Event interface{}
 type Client interface {
 	Close()
 	GetBroadcasterId(username string) (string, error)
-	Poll() (Event, error)
+	Reconnect()
 	SubscribeToEvent(broadcasterId string, sessionId string) error
 }
 
@@ -28,6 +28,11 @@ type websocketClient struct {
 	config     Config
 	httpClient *http.Client
 	ircClient  *twitch.Client
+}
+
+// Reconnect asynchronously attempts to re-establish connection.
+func (w websocketClient) Reconnect() {
+	w.ircClient.CloseAndReconnect()
 }
 
 func (w websocketClient) doRequest(method string, url string, body io.Reader) ([]byte, int, error) {
@@ -76,10 +81,6 @@ func (w websocketClient) GetBroadcasterId(username string) (string, error) {
 		return "", errors.New("twitch: no matching users")
 	}
 	return users.Data[0].Id, nil
-}
-
-func (w websocketClient) Poll() (Event, error) {
-	return nil, nil
 }
 
 func (w websocketClient) SubscribeToEvent(broadcasterId string, sessionId string) error {

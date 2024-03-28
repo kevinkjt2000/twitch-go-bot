@@ -54,7 +54,7 @@ func main() {
 				sessionId := session["id"].(string)
 				err = client.SubscribeToEvent(broadcasterId, sessionId)
 				panicOnErr(err)
-				keepAliveTimeoutSeconds = session["keepalive_timeout_seconds"].(float64) + 2 // add a few seconds to be safe
+				keepAliveTimeoutSeconds = session["keepalive_timeout_seconds"].(float64) * 2 // wait 2 durations to be safe
 			case "notification":
 				switch tMsg.Metadata.SubscriptionType {
 				case "channel.channel_points_custom_reward_redemption.add":
@@ -74,7 +74,8 @@ func main() {
 				}
 			case "session_keepalive":
 			case "session_reconnect":
-				// TODO MessageText {"metadata":{"message_id":"0249c605-e94c-47b4-8e7f-74f1b17f83e6","message_type":"session_reconnect","message_timestamp":"2023-12-04T18:20:44.155180678Z"},"payload":{"session":{"id":"AgoQcVTYThJiRFyIqybyp4l47RIGY2VsbC1i","status":"reconnecting","connected_at":"2023-12-03T23:26:36.10105215Z","keepalive_timeout_seconds":null,"reconnect_url":"wss://cell-b.eventsub.wss.twitch.tv/ws?challenge=cde23fff-2894-432d-93af-561bbb6f08c8\u0026id=AgoQcVTYThJiRFyIqybyp4l47RIGY2VsbC1i"}}}
+				fmt.Printf("session_reconnect: %s", tMsg)
+				client.Reconnect()
 			default:
 				fmt.Printf("Unhandled twitch message: %s\n", tMsg)
 			}
