@@ -131,11 +131,10 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 	}
 	ircClient.OnPrivateMessage = func(msg twitch.IRCMessage) {
 		channel := msg.Params[0][1:]
-		_ = channel
 		msgline := msg.Params[1]
 		if bytes.Contains(msgline, []byte("(╯°□°）╯︵ ┻━┻")) {
 			fmt.Println("Table flipping detected... flipping back")
-			ircClient.Say("shinybucket_", "┬─┬ ノ( ゜-゜ノ)", false)
+			ircClient.Say(string(channel), "┬─┬ ノ( ゜-゜ノ)", false)
 		}
 	}
 	ircClient.Run()
