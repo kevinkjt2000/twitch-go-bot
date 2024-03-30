@@ -120,14 +120,23 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 
 	ircClient, err := twitch.NewClient(&twitch.Client{
 		Server:      "wss://irc-ws.chat.twitch.tv",
-		User:        "",
-		Oauth:       "", // without "oauth:" https://twitchapps.com/tmi/
-		Debug:       true,
+		User:        "shinybotwatch",
+		Oauth:       token.AccessToken, // without "oauth:" https://twitchapps.com/tmi/
+		Debug:       false,
 		BotVerified: false, // verified bots: Have higher chat limits than regular users.
 		Channel:     []string{"shinybucket_"},
 	})
 	if err != nil {
 		return nil, err
+	}
+	ircClient.OnPrivateMessage = func(msg twitch.IRCMessage) {
+		channel := msg.Params[0][1:]
+		_ = channel
+		msgline := msg.Params[1]
+		if bytes.Contains(msgline, []byte("(╯°□°）╯︵ ┻━┻")) {
+			fmt.Println("Table flipping detected... flipping back")
+			ircClient.Say("shinybucket_", "┬─┬ ノ( ゜-゜ノ)", false)
+		}
 	}
 	ircClient.Run()
 	return &websocketClient{
@@ -144,7 +153,9 @@ func creatOauthClient(conf Config) oauth2.Config {
 		Endpoint:     otwitch.Endpoint,
 		RedirectURL:  "http://localhost:3000",
 		Scopes: []string{
+			// https://dev.twitch.tv/docs/authentication/scopes/
 			"channel:manage:redemptions",
+			"chat:edit",
 			"chat:read",
 			"channel:moderate",
 			"whispers:read",
