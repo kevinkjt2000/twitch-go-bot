@@ -1,15 +1,51 @@
 package twitch
 
 import (
+	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 
 	"github.com/kevinkjt2000/twitch-go-bot/internal"
 	"golang.org/x/oauth2"
 )
+
+func AcquireToken(ctx context.Context, conf Config) (*oauth2.Token, error) {
+	data, file_err := os.ReadFile(".twitch_token")
+	if file_err != nil {
+		//Token file was missing, so we contact auth servers
+		oauthConf := createOauthClient(conf)
+		code, err := authenticate(oauthConf)
+		if err != nil {
+			return nil, err
+		}
+		token, err := oauthConf.Exchange(ctx, code)
+		if err != nil {
+			return nil, err
+		}
+		tokenData, err := json.Marshal(token)
+		if err != nil {
+			return nil, err
+		}
+		os.WriteFile(".twitch_token", tokenData, 0600)
+		return token, nil
+	}
+
+	var token oauth2.Token
+	if err := json.Unmarshal(data, &token); err != nil {
+		return nil, err
+	}
+	return &token, nil
+}
+
+func NewAuthClient(ctx context.Context, conf Config, token *oauth2.Token) (*http.Client, error) {
+	oauthConf := createOauthClient(conf)
+	return oauthConf.Client(ctx, token), nil
+}
 
 // Returns an authentication code that may be used to request an OAuth token
 func authenticate(conf oauth2.Config) (authCode string, err error) {

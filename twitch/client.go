@@ -107,16 +107,14 @@ func (w websocketClient) SubscribeToEvent(broadcasterId string, sessionId string
 }
 
 func NewClient(ctx context.Context, conf Config) (Client, error) {
-	oauthConf := creatOauthClient(conf)
-	code, err := authenticate(oauthConf)
+	token, err := AcquireToken(ctx, conf)
 	if err != nil {
 		return nil, err
 	}
-	token, err := oauthConf.Exchange(ctx, code)
+	oauthClient, err := NewAuthClient(ctx, conf, token)
 	if err != nil {
 		return nil, err
 	}
-	oauthClient := oauthConf.Client(ctx, token)
 
 	ircClient, err := twitch.NewClient(&twitch.Client{
 		Server:      "wss://irc-ws.chat.twitch.tv",
@@ -145,7 +143,7 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 	}, nil
 }
 
-func creatOauthClient(conf Config) oauth2.Config {
+func createOauthClient(conf Config) oauth2.Config {
 	oauthConf := oauth2.Config{
 		ClientID:     conf.ClientId,
 		ClientSecret: conf.ClientSecret,
