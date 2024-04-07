@@ -132,7 +132,7 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 	ircClient.OnPrivateMessage = func(msg twitch.IRCMessage) {
 		channel := msg.Params[0][1:]
 		msgline := msg.Params[1]
-		if bytes.Contains(msgline, []byte("(╯°□°）╯︵ ┻━┻")) {
+		if bytes.Contains(msgline, []byte("(╯°□°）╯︵ ┻━┻")) || bytes.Contains(msgline, []byte("(╯°□°)╯︵ ┻━┻")) {
 			fmt.Println("Table flipping detected... flipping back")
 			ircClient.Say(string(channel), "┬─┬ ノ( ゜-゜ノ)", false)
 		}
