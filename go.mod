@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
+	github.com/magefile/mage v1.15.0
 	github.com/spddl/go-twitch-ws v0.0.0-20210519195157-c49c94366ced
 	golang.org/x/oauth2 v0.14.0
 	nhooyr.io/websocket v1.8.10
