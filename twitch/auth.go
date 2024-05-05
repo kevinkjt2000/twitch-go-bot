@@ -3,41 +3,51 @@ package twitch
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/kevinkjt2000/twitch-go-bot/internal"
 	"golang.org/x/oauth2"
 )
 
+func fetchTokenFromServer(ctx context.Context, conf Config) (*oauth2.Token, error) {
+	oauthConf := createOauthClient(conf)
+	code, err := authenticate(oauthConf)
+	if err != nil {
+		return nil, err
+	}
+	token, err := oauthConf.Exchange(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+	tokenData, err := json.Marshal(token)
+	if err != nil {
+		return nil, err
+	}
+	os.WriteFile(".twitch_token", tokenData, 0600)
+	return token, nil
+}
+
 func AcquireToken(ctx context.Context, conf Config) (*oauth2.Token, error) {
 	data, file_err := os.ReadFile(".twitch_token")
 	if file_err != nil {
 		//Token file was missing, so we contact auth servers
-		oauthConf := createOauthClient(conf)
-		code, err := authenticate(oauthConf)
-		if err != nil {
-			return nil, err
-		}
-		token, err := oauthConf.Exchange(ctx, code)
-		if err != nil {
-			return nil, err
-		}
-		tokenData, err := json.Marshal(token)
-		if err != nil {
-			return nil, err
-		}
-		os.WriteFile(".twitch_token", tokenData, 0600)
-		return token, nil
+		return fetchTokenFromServer(ctx, conf)
 	}
 
 	var token oauth2.Token
 	if err := json.Unmarshal(data, &token); err != nil {
 		return nil, err
+	}
+	if token.Expiry.Before(time.Now()) {
+		fmt.Println("Token is expired need to fetch a new one")
+		return fetchTokenFromServer(ctx, conf)
 	}
 	return &token, nil
 }
