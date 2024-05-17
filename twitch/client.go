@@ -134,6 +134,10 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 		if bytes.Contains(squashedMsgline, []byte("(╯°□°)╯︵┻━┻")) {
 			fmt.Println("Table flipping detected... flipping back")
 			ircClient.Say(string(channel), "┬─┬ ノ( ゜-゜ノ)", false)
+		} else if bytes.Equal(squashedMsgline, []byte("!discord")) {
+			ircClient.Say(string(channel), "https://discord.gg/CgnaKXDnar", false)
+		} else if bytes.Equal(squashedMsgline, []byte("!textures")) {
+			ircClient.Say(string(channel), "Using F32 packs and outlined ores from https://gtnh.miraheze.org/wiki/Resource_Packs", false)
 		}
 	}
 	ircClient.Run()
