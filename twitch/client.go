@@ -139,6 +139,8 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 			ircClient.Say(string(channel), "┬─┬ ノ( ゜-゜ノ)", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!discord")) {
 			ircClient.Say(string(channel), "https://discord.gg/CgnaKXDnar", false)
+		} else if bytes.Equal(squashedMsgline, []byte("!modpack")) {
+			ircClient.Say(string(channel), "Check out GTNH's wiki here https://wiki.gtnewhorizons.com/wiki/Main_Page", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!textures")) {
 			ircClient.Say(string(channel), "Using F32 packs and outlined ores from https://gtnh.miraheze.org/wiki/Resource_Packs", false)
 		}
