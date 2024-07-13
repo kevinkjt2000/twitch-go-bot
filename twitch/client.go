@@ -127,6 +127,9 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	ircClient.OnConnect = func(connected bool) {
+		fmt.Printf("Connecting to IRC with %v\n", connected)
+	}
 	ircClient.OnPrivateMessage = func(msg twitch.IRCMessage) {
 		channel := msg.Params[0][1:]
 		msgline := msg.Params[1]
