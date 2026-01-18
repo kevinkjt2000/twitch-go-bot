@@ -30,14 +30,14 @@ func fetchTokenFromServer(ctx context.Context, conf Config) (*oauth2.Token, erro
 	if err != nil {
 		return nil, err
 	}
-	os.WriteFile(".twitch_token", tokenData, 0600)
+	os.WriteFile(".twitch_token", tokenData, 0o600)
 	return token, nil
 }
 
 func AcquireToken(ctx context.Context, conf Config) (*oauth2.Token, error) {
-	data, file_err := os.ReadFile(".twitch_token")
-	if file_err != nil {
-		//Token file was missing, so we contact auth servers
+	data, fileErr := os.ReadFile(".twitch_token")
+	if fileErr != nil {
+		// Token file was missing, so we contact auth servers
 		return fetchTokenFromServer(ctx, conf)
 	}
 
@@ -63,7 +63,7 @@ func authenticate(conf oauth2.Config) (authCode string, err error) {
 	if err != nil {
 		return
 	}
-	authCodeUrl := conf.AuthCodeURL(csrfToken)
+	authCodeURL := conf.AuthCodeURL(csrfToken)
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	authCallbackHandler := func(w http.ResponseWriter, r *http.Request) {
@@ -75,27 +75,24 @@ func authenticate(conf oauth2.Config) (authCode string, err error) {
 		_, _ = io.WriteString(w, "Authorization code stored successfully. You may now close this page.")
 		wg.Done()
 	}
-	redirectUrl, err := url.Parse(conf.RedirectURL)
+	redirectURL, err := url.Parse(conf.RedirectURL)
 	if err != nil {
 		return
 	}
-	listener, err := net.Listen("tcp", redirectUrl.Host)
+	listener, err := net.Listen("tcp", redirectURL.Host)
 	if err != nil {
 		return
 	}
 	server := &http.Server{Addr: listener.Addr().String()}
-	http.HandleFunc("/"+redirectUrl.Path, authCallbackHandler)
+	defer server.Close()
+	http.HandleFunc("/"+redirectURL.Path, authCallbackHandler)
 	go func() {
 		if err := server.Serve(listener); err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
 
-	err = internal.Open(authCodeUrl)
-	if err != nil {
-		return
-	}
+	fmt.Printf("Visit this URL to auth: %s\n", authCodeURL)
 	wg.Wait()
-	_ = server.Close()
 	return
 }

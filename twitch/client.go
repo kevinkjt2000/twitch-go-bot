@@ -144,7 +144,7 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 		} else if bytes.Equal(squashedMsgline, []byte("!textures")) {
 			ircClient.Say(string(channel), "Using F32 packs and outlined ores from https://gtnh.miraheze.org/wiki/Resource_Packs", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!youtube")) {
-			ircClient.Say(string(channel), "http://www.youtube.com/@shinybucket_", false)
+			ircClient.Say(string(channel), "http://www.youtube.com/@shinybucket", false)
 		}
 	}
 	ircClient.Run()
