@@ -64,8 +64,8 @@ func main() {
 					case "TTS":
 						fmt.Printf("TTS event: %v\n", event)
 						msg := event["user_input"].(string)
-						_ = speak(msg) //TODO: refund user if festival fails
-						//TODO: pause music?
+						_ = speak(msg) // TODO: refund user if festival fails
+						// TODO: pause music?
 					default: // Can safely ignore rewards that do not require an automated response
 					}
 					fmt.Printf("%s redeemed '%s'\n", event["user_login"], reward["title"])
@@ -79,7 +79,7 @@ func main() {
 			default:
 				fmt.Printf("Unhandled twitch message: %s\n", tMsg)
 			}
-			//TODO: handle disconnects
+			// TODO: handle disconnects
 		}
 	}
 }
@@ -115,10 +115,13 @@ func twitchMessagesChannel(conn *websocket.Conn, ctx context.Context) chan twitc
 var festivalVoices []string
 
 func init() {
-	cmd := exec.Command("ls", "/usr/share/festival/voices/us")
+	cmd := exec.Command("ls", "-1", "/usr/share/festival/voices/us")
 	output, err := cmd.CombinedOutput()
 	panicOnErr(err)
 	festivalVoices = strings.Split(string(output), "\n")
+	fmt.Println(festivalVoices)
+	festivalVoices = festivalVoices[:len(festivalVoices)-1]
+	fmt.Println(festivalVoices)
 }
 
 func speak(msg string) error {
