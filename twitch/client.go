@@ -134,7 +134,7 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 		channel := msg.Params[0][1:]
 		msgline := msg.Params[1]
 		squashedMsgline := bytes.ReplaceAll(msgline, []byte(" "), []byte(""))
-		if bytes.Contains(squashedMsgline, []byte("(╯°□°)╯︵┻━┻")) {
+		if bytes.Contains(squashedMsgline, []byte("(╯°□°)╯︵┻━┻")) || bytes.Contains(squashedMsgline, []byte("(╯°□°）╯︵┻━┻")) {
 			fmt.Println("Table flipping detected... flipping back")
 			ircClient.Say(string(channel), "┬─┬ ノ( ゜-゜ノ)", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!discord")) {
