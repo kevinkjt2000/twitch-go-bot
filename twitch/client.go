@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 
@@ -144,9 +145,11 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 		} else if bytes.Equal(squashedMsgline, []byte("!shaders")) {
 			ircClient.Say(string(channel), "Complementary v5.6.1 https://gtnh.miraheze.org/wiki/shader", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!textures")) {
-			ircClient.Say(string(channel), "Using F32 packs, outlined ores, and Usernm0 circuits from https://gtnh.miraheze.org/wiki/Resource_Packs", false)
+			ircClient.Say(string(channel), "Using Faithful 32x, outlined ores, and Usernm0 circuits from https://gtnh.miraheze.org/wiki/Resource_Packs", false)
 		} else if bytes.Equal(squashedMsgline, []byte("!youtube")) {
 			ircClient.Say(string(channel), "http://www.youtube.com/@shinybucket", false)
+		} else if bytes.Equal(squashedMsgline, []byte("!8ball")) {
+			ircClient.Say(string(channel), randomEightBallMessage(), false)
 		}
 	}
 	ircClient.Run()
@@ -155,6 +158,16 @@ func NewClient(ctx context.Context, conf Config) (Client, error) {
 		httpClient: oauthClient,
 		ircClient:  ircClient,
 	}, nil
+}
+
+func randomEightBallMessage() string {
+	messages := []string{
+		"It is certain.", "It is decidely so.",
+		"Without a doubt.", "Yes – definitely.", "You may rely on it.", "As I see it, yes.", "Most likely.", "Outlook good.", "Yes.", "Signs point to yes.",
+		"Reply hazy, try again.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.",
+		"Don’t count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Very doubtful.",
+	}
+	return messages[rand.Intn(len(messages))]
 }
 
 func createOauthClient(conf Config) oauth2.Config {
